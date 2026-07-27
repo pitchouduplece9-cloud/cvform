@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CVForm — Lebenslauf & Anschreiben, weltweit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --ink:#16232E; --ink-soft:#3C4A55;
+    --paper:#EEF1EF; --paper-card:#FFFFFF; --line:#D8DCD6;
+    --seal:#B08D3E; --seal-soft:#EFE4C9;
+    --moss:#3E6259; --moss-soft:#DDE7E3;
+    --danger:#B3492F; --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--line);background:var(--paper-card);flex-wrap:wrap;gap:12px;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo .mark{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--seal);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--seal);transform:rotate(-8deg);}
+  .logo span{font-size:20px;letter-spacing:-0.01em;}
+  .logo b{color:var(--moss);}
+  .lang-switch{display:flex;gap:4px;}
+  .lang-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 9px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);cursor:pointer;border-radius:20px;}
+  .lang-btn.active{border-color:var(--moss);color:var(--moss);background:var(--moss-soft);}
+  .upgrade-btn{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:20px;border:1px solid var(--seal);background:var(--seal-soft);color:#7A5F22;cursor:pointer;text-decoration:none;display:inline-block;}
+  .premium-badge{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:20px;background:var(--moss);color:#fff;}
+
+  .app{display:grid;grid-template-columns:minmax(340px,480px) 1fr;min-height:calc(100vh - 64px);}
+  @media (max-width:900px){.app{grid-template-columns:1fr;}}
+  .form-pane{padding:32px;border-right:1px solid var(--line);}
+  .preview-pane{padding:32px;display:flex;flex-direction:column;align-items:center;background:#E4E7E2;}
+
+  .steps{display:flex;gap:6px;margin-bottom:28px;flex-wrap:wrap;}
+  .step-pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:20px;border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;background:var(--paper-card);display:flex;align-items:center;gap:6px;}
+  .step-pill.active{border-color:var(--moss);color:var(--moss);background:var(--moss-soft);}
+  .step-pill .check{display:none;}
+  .step-pill.done .check{display:inline;color:var(--seal);}
+
+  .card{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+  .card h2{font-size:22px;margin-bottom:4px;}
+  .card p.hint{color:var(--ink-soft);font-size:13px;margin:0 0 20px 0;}
+
+  label{display:block;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);margin:14px 0 5px;text-transform:uppercase;letter-spacing:.03em;}
+  label:first-child{margin-top:0;}
+  input,textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;background:#fff;color:var(--ink);}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--moss);}
+  textarea{resize:vertical;min-height:70px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .country-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+  .country-btn{text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+  .country-btn.active{border-color:var(--moss);background:var(--moss-soft);color:var(--moss);}
+  .country-btn small{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);font-size:10px;}
+  .country-btn.active small{color:var(--moss);}
+
+  .entry-block{border:1px dashed var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;position:relative;}
+  .entry-block .remove{position:absolute;top:10px;right:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;}
+  .add-btn,.nav-btn,.export-btn,.tab-btn{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.02em;padding:10px 16px;border-radius:var(--radius);border:1px solid var(--moss);background:transparent;color:var(--moss);cursor:pointer;}
+  .add-btn:hover{background:var(--moss-soft);}
+  .nav-row{display:flex;justify-content:space-between;margin-top:24px;}
+  .nav-btn.primary{background:var(--moss);color:#fff;border-color:var(--moss);}
+  .nav-btn[disabled]{opacity:.3;cursor:not-allowed;}
+
+  .preview-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .tab-btn.active{background:var(--moss);color:#fff;}
+
+  #page{width:794px;max-width:100%;min-height:1123px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,0.12);padding:56px 56px 40px;}
+  #page.tpl-bold{padding:0;overflow:hidden;}
+  .lp-header{display:flex;justify-content:space-between;gap:24px;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:24px;}
+  .lp-header h1{font-size:30px;}
+  .lp-header .role{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--moss);margin-top:4px;}
+  .lp-photo{width:100px;height:130px;background:#EEF1EF;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-soft);text-align:center;flex-shrink:0;}
+  .lp-contact{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.6;}
+  .lp-section{margin-bottom:22px;}
+  .lp-section h3{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--moss);border-bottom:1px solid var(--moss-soft);padding-bottom:6px;margin-bottom:12px;}
+  .lp-item{display:grid;grid-template-columns:110px 1fr;gap:14px;margin-bottom:12px;font-size:13.5px;}
+  .lp-item .dates{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+  .lp-item .title{font-weight:600;}
+  .lp-item .sub{color:var(--ink-soft);font-size:12.5px;}
+  .lp-item .desc{margin-top:4px;font-size:12.5px;line-height:1.5;}
+  .lp-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .lp-tag{font-size:11.5px;background:var(--seal-soft);color:#7A5F22;padding:3px 9px;border-radius:20px;}
+  .lp-empty{color:#B9BEB7;font-size:12.5px;font-style:italic;}
+  .lp-footer{margin-top:32px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#C7CCC5;}
+  .lp-section, .lp-item{page-break-inside:avoid;break-inside:avoid;}
+
+  /* template picker */
+  .tpl-picker{display:flex;gap:8px;margin-bottom:14px;}
+  .tpl-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;}
+  .tpl-btn.active{border-color:var(--seal);color:var(--seal);background:var(--seal-soft);}
+
+  /* --- classic (strict tabellarisch) template --- */
+  .tpl-classic{font-family:'IBM Plex Mono',Georgia,serif;}
+  .tpl-classic table{width:100%;border-collapse:collapse;}
+  .tpl-classic td,.tpl-classic th{border:1px solid #000;padding:8px 10px;vertical-align:top;font-size:12px;}
+  .tpl-classic .cls-header{text-align:center;padding:14px 0 20px;}
+  .tpl-classic .cls-header h1{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:.03em;}
+  .tpl-classic .cls-header .role{font-size:12px;margin-top:4px;color:var(--ink-soft);}
+  .tpl-classic .cls-section-title{background:#EAEAEA;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:11px;}
+  .tpl-classic .cls-label{width:130px;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+  .tpl-classic .cls-empty{color:#999;font-style:italic;}
+  .tpl-classic .cls-footer{margin-top:14px;text-align:center;font-size:9px;color:#aaa;}
+
+  /* --- bold sidebar template --- */
+  .tpl-bold{display:grid;grid-template-columns:220px 1fr;min-height:1123px;}
+  .tpl-bold .bold-side{background:var(--ink);color:#EDEFED;padding:36px 24px;}
+  .tpl-bold .bold-photo{width:88px;height:88px;border-radius:50%;background:#2B3A46;border:2px solid var(--seal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#8B98A2;margin-bottom:16px;}
+  .tpl-bold .bold-side h1{font-size:20px;color:#fff;line-height:1.2;}
+  .tpl-bold .bold-side .role{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--seal);margin:6px 0 20px;}
+  .tpl-bold .bold-side .bold-block{margin-bottom:20px;}
+  .tpl-bold .bold-side .bold-block h4{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#8B98A2;margin-bottom:8px;}
+  .tpl-bold .bold-side .bold-contact{font-size:11.5px;line-height:1.8;color:#D7DBD8;word-break:break-word;}
+  .tpl-bold .bold-side .bold-tag{display:inline-block;font-size:10.5px;background:#2B3A46;color:#D7DBD8;padding:3px 8px;border-radius:12px;margin:2px 4px 2px 0;}
+  .tpl-bold .bold-main{padding:40px 36px;}
+  .tpl-bold .bold-main .lp-section h3{color:var(--ink);border-bottom-color:var(--line);}
+  .tpl-bold .bold-main .lp-item{border-left:2px solid var(--seal-soft);padding-left:14px;grid-template-columns:1fr;}
+  .tpl-bold .bold-main .lp-item .dates{margin-bottom:2px;}
+  .tpl-bold .bold-footer{grid-column:1/-1;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#C7CCC5;padding-bottom:12px;}
+
+  .letter-doc{font-size:13.5px;line-height:1.7;}
+  .letter-meta{display:flex;justify-content:space-between;margin-bottom:36px;font-size:12.5px;color:var(--ink-soft);}
+  .letter-body p{margin:0 0 14px;white-space:pre-wrap;}
+  .letter-sign{margin-top:36px;}
+
+  .export-row{margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .export-btn{background:var(--ink);color:#fff;border-color:var(--ink);font-size:13px;padding:12px 22px;}
+  .export-note{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="mark">CV</div><span><b>CV</b>Form</span></div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div id="premiumSlot"></div>
+    <div class="lang-switch" id="langSwitch"></div>
+  </div>
+</header>
+
+<div class="app">
+  <div class="form-pane">
+    <div class="steps" id="steps"></div>
+    <div class="card" id="stepCard"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn">←</button>
+      <button class="nav-btn primary" id="nextBtn">→</button>
+    </div>
+  </div>
+
+  <div class="preview-pane">
+    <div class="preview-tabs" id="previewTabs"></div>
+    <div class="tpl-picker" id="tplPicker"></div>
+    <div id="page"></div>
+    <div class="export-row">
+      <button class="export-btn" id="exportBtn"></button>
+      <span class="export-note" id="exportNote"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- i18n: interface chrome (DE/FR/EN) ---------- */
+const UI = {
+  de: {
+    steps: ['Land', 'Persönlich', 'Erfahrung', 'Ausbildung', 'Kenntnisse', 'Anschreiben', 'Fertig'],
+    landTitle: 'Für welches Land erstellst du deine Bewerbung?',
+    landHint: 'Wir passen Aufbau, Pflichtangaben und Anschreiben-Konventionen automatisch an die Norm dieses Landes an.',
+    persTitle: 'Persönliche Daten', persHint: 'Diese Angaben erscheinen im Kopf deines Lebenslaufs.',
+    vorname:'Vorname', nachname:'Nachname', rolle:'Zielposition', geburtsdatum:'Geburtsdatum', geburtsort:'Geburtsort',
+    familienstand:'Familienstand', strasse:'Straße & Hausnummer', plz:'PLZ', ort:'Ort', telefon:'Telefon', email:'E-Mail',
+    erfTitle:'Berufserfahrung', erfHint:'Neueste Station zuerst.', addErf:'+ Station hinzufügen',
+    von:'Von', bis:'Bis', position:'Position', firma:'Arbeitgeber, Ort', beschreibung:'Beschreibung', remove:'Entfernen',
+    ausTitle:'Ausbildung', ausHint:'Schule, Ausbildung, Studium — neueste zuerst.', addAus:'+ Station hinzufügen',
+    abschluss:'Abschluss / Ausbildung', einrichtung:'Einrichtung, Ort',
+    kenntTitle:'Kenntnisse', kenntHint:'Kommagetrennt eingeben.', sprachen:'Sprachen (z. B. Deutsch C1, Englisch B2)',
+    edv:'EDV / Fachkenntnisse', softskills:'Soft Skills',
+    briefTitle:'Anschreiben', briefHint:'Wird im Stil des gewählten Landes formatiert.',
+    empfaenger:'Unternehmen', ansprechpartner:'Ansprechpartner (optional)', betreff:'Betreff / Position',
+    ortDatum:'Ort, Datum', brieftext:'Haupttext (Motivation, Eignung, Abschluss)',
+    fertigTitle:'Fertig!', fertigHint:'Prüfe die Vorschau rechts und lade PDF herunter.',
+    fertigTip:'Tipp: Achte auf lückenlose Zeitangaben — wichtig für die Nachvollziehbarkeit.',
+    back:'← Zurück', next:'Weiter →', exportPdf:'PDF exportieren →',
+    tabCv:'Lebenslauf', tabLetter:'Anschreiben', exportCvBtn:'Lebenslauf als PDF', exportLetterBtn:'Anschreiben als PDF',
+    exportNote:'Kostenlos · mit CVForm-Kennzeichnung', photoPlaceholder:'Foto (optional)',
+    tplModern:'Modern', tplClassic:'Klassisch', tplBold:'Kreativ',
+    upgradeBtn:'Premium werden', premiumBadge:'✓ Premium'
+  },
+  fr: {
+    steps: ['Pays', 'Coordonnées', 'Expérience', 'Formation', 'Compétences', 'Lettre', 'Terminé'],
+    landTitle: 'Pour quel pays prépares-tu ta candidature ?',
+    landHint: "On adapte automatiquement la structure, les mentions obligatoires et les conventions de la lettre aux normes de ce pays.",
+    persTitle: 'Coordonnées', persHint: 'Ces informations apparaissent en en-tête de ton CV.',
+    vorname:'Prénom', nachname:'Nom', rolle:'Poste visé', geburtsdatum:'Date de naissance', geburtsort:'Lieu de naissance',
+    familienstand:'Situation familiale', strasse:'Rue et numéro', plz:'Code postal', ort:'Ville', telefon:'Téléphone', email:'E-mail',
+    erfTitle:'Expérience professionnelle', erfHint:'La plus récente en premier.', addErf:'+ Ajouter une expérience',
+    von:'Du', bis:'Au', position:'Poste', firma:'Employeur, ville', beschreibung:'Description', remove:'Supprimer',
+    ausTitle:'Formation', ausHint:'École, formation, études — la plus récente en premier.', addAus:'+ Ajouter une formation',
+    abschluss:'Diplôme / Formation', einrichtung:'Établissement, ville',
+    kenntTitle:'Compétences', kenntHint:'Séparées par des virgules.', sprachen:'Langues (ex. Français natif, Anglais B2)',
+    edv:'Compétences informatiques', softskills:'Savoir-être / Qualités',
+    briefTitle:'Lettre de motivation', briefHint:'Sera mise en forme selon les usages du pays choisi.',
+    empfaenger:'Entreprise', ansprechpartner:'Contact (facultatif)', betreff:'Objet / Poste',
+    ortDatum:'Ville, date', brieftext:'Corps du texte (motivation, adéquation, conclusion)',
+    fertigTitle:'Terminé !', fertigHint:'Vérifie l\'aperçu à droite et télécharge le PDF.',
+    fertigTip:'Astuce : évite les trous dans les dates — important pour la lisibilité de ton parcours.',
+    back:'← Retour', next:'Suivant →', exportPdf:'Exporter le PDF →',
+    tabCv:'CV', tabLetter:'Lettre', exportCvBtn:'CV en PDF', exportLetterBtn:'Lettre en PDF',
+    exportNote:'Gratuit · avec mention CVForm', photoPlaceholder:'Photo (facultative)',
+    tplModern:'Moderne', tplClassic:'Classique', tplBold:'Créatif',
+    upgradeBtn:'Passer Premium', premiumBadge:'✓ Premium'
+  },
+  en: {
+    steps: ['Country', 'Personal', 'Experience', 'Education', 'Skills', 'Cover letter', 'Done'],
+    landTitle: 'Which country are you applying in?',
+    landHint: 'We automatically adapt the layout, required fields, and cover letter conventions to that country\'s norms.',
+    persTitle: 'Personal details', persHint: 'This appears in the header of your CV.',
+    vorname:'First name', nachname:'Last name', rolle:'Target role', geburtsdatum:'Date of birth', geburtsort:'Place of birth',
+    familienstand:'Marital status', strasse:'Street & number', plz:'Postcode', ort:'City', telefon:'Phone', email:'Email',
+    erfTitle:'Work experience', erfHint:'Most recent first.', addErf:'+ Add experience',
+    von:'From', bis:'To', position:'Position', firma:'Employer, city', beschreibung:'Description', remove:'Remove',
+    ausTitle:'Education', ausHint:'School, training, studies — most recent first.', addAus:'+ Add education',
+    abschluss:'Degree / Training', einrichtung:'Institution, city',
+    kenntTitle:'Skills', kenntHint:'Comma-separated.', sprachen:'Languages (e.g. English native, German B2)',
+    edv:'IT / technical skills', softskills:'Soft skills',
+    briefTitle:'Cover letter', briefHint:'Formatted to match the chosen country\'s conventions.',
+    empfaenger:'Company', ansprechpartner:'Contact person (optional)', betreff:'Subject / Position',
+    ortDatum:'City, date', brieftext:'Body (motivation, fit, closing)',
+    fertigTitle:'Done!', fertigHint:'Check the preview on the right and download the PDF.',
+    fertigTip:'Tip: avoid gaps in dates — it matters for how your timeline reads.',
+    back:'← Back', next:'Next →', exportPdf:'Export PDF →',
+    tabCv:'CV / Resume', tabLetter:'Cover letter', exportCvBtn:'CV as PDF', exportLetterBtn:'Cover letter as PDF',
+    exportNote:'Free · with CVForm mark', photoPlaceholder:'Photo (optional)',
+    tplModern:'Modern', tplClassic:'Classic', tplBold:'Bold',
+    upgradeBtn:'Go Premium', premiumBadge:'✓ Premium'
+  }
+};
+
+/* ---------- Country norms + CV content language ---------- */
+const COUNTRY_NAMES = {
+  DE:{de:'Deutschland',fr:'Allemagne',en:'Germany'},
+  FR:{de:'Frankreich',fr:'France',en:'France'},
+  CM:{de:'Kamerun',fr:'Cameroun',en:'Cameroon'},
+  BE:{de:'Belgien',fr:'Belgique',en:'Belgium'},
+  CH:{de:'Schweiz',fr:'Suisse',en:'Switzerland'},
+  GB:{de:'Vereinigtes Königreich',fr:'Royaume-Uni',en:'United Kingdom'},
+  ES:{de:'Spanien',fr:'Espagne',en:'Spain'},
+  IT:{de:'Italien',fr:'Italie',en:'Italy'},
+  US:{de:'USA',fr:'États-Unis',en:'United States'},
+  CA:{de:'Kanada',fr:'Canada',en:'Canada'}
+};
+const COUNTRIES = [
+  {code:'DE', cvLang:'de', photo:'common',   personalBlock:true,  maritalStatus:false},
+  {code:'FR', cvLang:'fr', photo:'optional', personalBlock:true,  maritalStatus:false},
+  {code:'CM', cvLang:'fr', photo:'common',   personalBlock:true,  maritalStatus:true},
+  {code:'BE', cvLang:'fr', photo:'optional', personalBlock:true,  maritalStatus:false},
+  {code:'CH', cvLang:'de', photo:'common',   personalBlock:true,  maritalStatus:false},
+  {code:'GB', cvLang:'en', photo:'avoid',    personalBlock:false, maritalStatus:false},
+  {code:'ES', cvLang:'es', photo:'common',   personalBlock:true,  maritalStatus:false},
+  {code:'IT', cvLang:'it', photo:'common',   personalBlock:true,  maritalStatus:false},
+  {code:'US', cvLang:'en', photo:'avoid',    personalBlock:false, maritalStatus:false},
+  {code:'CA', cvLang:'en', photo:'avoid',    personalBlock:false, maritalStatus:false}
+];
+
+/* content strings: section headers + letter conventions, keyed by CV content language */
+const CONTENT = {
+  de: { personalData:'Persönliche Daten', experience:'Berufserfahrung', education:'Ausbildung', languages:'Sprachen',
+        it:'EDV-Kenntnisse', soft:'Soft Skills', birth:'Geburtsdatum', marital:'Familienstand',
+        salutationGeneric:'Sehr geehrte Damen und Herren,', salutationNamed:n=>`Sehr geehrte(r) Herr/Frau ${n},`,
+        closing:'Mit freundlichen Grüßen', cvNoun:'Lebenslauf' },
+  fr: { personalData:'Informations personnelles', experience:'Expérience professionnelle', education:'Formation', languages:'Langues',
+        it:'Compétences informatiques', soft:'Savoir-être', birth:'Date de naissance', marital:'Situation familiale',
+        salutationGeneric:'Madame, Monsieur,', salutationNamed:n=>`Madame, Monsieur ${n},`,
+        closing:"Veuillez agréer, Madame, Monsieur, l'expression de mes salutations distinguées.", cvNoun:'CV' },
+  en: { personalData:'Personal details', experience:'Work experience', education:'Education', languages:'Languages',
+        it:'IT skills', soft:'Soft skills', birth:'Date of birth', marital:'Marital status',
+        salutationGeneric:'Dear Hiring Manager,', salutationNamed:n=>`Dear ${n},`,
+        closing:'Sincerely,', cvNoun:'CV / Resume' },
+  es: { personalData:'Datos personales', experience:'Experiencia profesional', education:'Formación', languages:'Idiomas',
+        it:'Informática', soft:'Habilidades personales', birth:'Fecha de nacimiento', marital:'Estado civil',
+        salutationGeneric:'Estimados señores,', salutationNamed:n=>`Estimado/a ${n},`,
+        closing:'Atentamente,', cvNoun:'CV' },
+  it: { personalData:'Dati personali', experience:'Esperienza professionale', education:'Istruzione', languages:'Lingue',
+        it:'Competenze informatiche', soft:'Soft skills', birth:'Data di nascita', marital:'Stato civile',
+        salutationGeneric:'Egregio Signore, Egregia Signora,', salutationNamed:n=>`Gentile ${n},`,
+        closing:'Cordiali saluti,', cvNoun:'Curriculum Vitae' }
+};
+
+/* ---------- State ---------- */
+function detectUiLang(){
+  const nav = (navigator.language || 'en').slice(0,2);
+  return ['de','fr','en'].includes(nav) ? nav : 'en';
+}
+const DEFAULT_STATE = {
+  step: 0, uiLang: detectUiLang(), country: 'DE', previewTab: 'cv', template: 'modern', premium: false,
+  personal: { vorname:'', nachname:'', rolle:'', geburtsdatum:'', geburtsort:'', familienstand:'', strasse:'', plz:'', ort:'', telefon:'', email:'' },
+  erfahrung: [], ausbildung: [], sprachen: [], edv: [], softskills: '',
+  letter: { empfaenger:'', ansprechpartner:'', betreff:'', ortDatum:'', brief:'' }
+};
+const STORAGE_KEY = 'cvform_draft_v1';
+function loadPersisted(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Object.assign({}, DEFAULT_STATE, parsed, { uiLang: parsed.uiLang || detectUiLang() });
+  }catch(e){ return null; }
+}
+function persist(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ /* storage unavailable, ignore */ }
+}
+/* ---------- Stripe / Premium ---------- */
+// TODO: replace with your real Stripe Payment Link for CVForm (Dashboard → Payment Links).
+// Set the link's "success_url" to this page's URL with ?premium=success appended, e.g.
+// https://cvform.de/?premium=success
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/REPLACE_ME';
+
+function checkPremiumFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('premium') === 'success'){
+    state.premium = true;
+    persist();
+    // clean the URL so refreshing doesn't re-trigger anything
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+const state = loadPersisted() || DEFAULT_STATE;
+if(state.premium === undefined) state.premium = false;
+checkPremiumFromUrl();
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function t(){ return UI[state.uiLang]; }
+function countryCfg(){ return COUNTRIES.find(c=>c.code===state.country); }
+function content(){ return CONTENT[countryCfg().cvLang]; }
+
+/* ---------- Rendering ---------- */
+function renderLangSwitch(){
+  document.getElementById('langSwitch').innerHTML = ['de','fr','en'].map(l=>
+    `<button class="lang-btn ${l===state.uiLang?'active':''}" data-l="${l}">${l.toUpperCase()}</button>`
+  ).join('');
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.uiLang = b.dataset.l; renderAll(); });
+  });
+}
+
+function renderPremiumSlot(){
+  const L = t();
+  const el = document.getElementById('premiumSlot');
+  if(state.premium){
+    el.innerHTML = `<span class="premium-badge">${L.premiumBadge}</span>`;
+  } else {
+    el.innerHTML = `<a class="upgrade-btn" href="${STRIPE_PAYMENT_LINK}" target="_blank" rel="noopener">${L.upgradeBtn}</a>`;
+  }
+}
+
+function renderSteps(){
+  const el = document.getElementById('steps');
+  el.innerHTML = t().steps.map((label,i)=>{
+    const done = i < state.step, active = i === state.step;
+    return `<div class="step-pill ${active?'active':''} ${done?'done':''}" data-i="${i}"><span class="check">✓</span>${i+1}. ${label}</div>`;
+  }).join('');
+  el.querySelectorAll('.step-pill').forEach(p=>p.addEventListener('click', ()=>{ state.step=parseInt(p.dataset.i); renderAll(); }));
+}
+
+function renderStepCard(){
+  const card = document.getElementById('stepCard');
+  const L = t();
+  const idx = state.step;
+
+  if(idx === 0){
+    card.innerHTML = `
+      <h2>${L.landTitle}</h2>
+      <p class="hint">${L.landHint}</p>
+      <div class="country-grid" id="countryGrid">
+        ${COUNTRIES.map(c=>`
+          <button class="country-btn ${c.code===state.country?'active':''}" data-c="${c.code}">
+            ${COUNTRY_NAMES[c.code][state.uiLang]} <small>${c.cvLang.toUpperCase()}</small>
+          </button>`).join('')}
+      </div>
+    `;
+    card.querySelectorAll('.country-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{ state.country = b.dataset.c; renderAll(); });
+    });
+  }
+
+  if(idx === 1){
+    const p = state.personal, cfg = countryCfg();
+    card.innerHTML = `
+      <h2>${L.persTitle}</h2><p class="hint">${L.persHint}</p>
+      <div class="row2"><div><label>${L.vorname}</label><input data-f="vorname" value="${p.vorname}"></div>
+      <div><label>${L.nachname}</label><input data-f="nachname" value="${p.nachname}"></div></div>
+      <label>${L.rolle}</label><input data-f="rolle" value="${p.rolle}">
+      ${cfg.personalBlock ? `
+      <div class="row2"><div><label>${L.geburtsdatum}</label><input data-f="geburtsdatum" placeholder="TT.MM.JJJJ" value="${p.geburtsdatum}"></div>
+      <div><label>${L.geburtsort}</label><input data-f="geburtsort" value="${p.geburtsort}"></div></div>` : ''}
+      ${cfg.maritalStatus ? `<label>${L.familienstand}</label><input data-f="familienstand" value="${p.familienstand}">` : ''}
+      <label>${L.strasse}</label><input data-f="strasse" value="${p.strasse}">
+      <div class="row2"><div><label>${L.plz}</label><input data-f="plz" value="${p.plz}"></div>
+      <div><label>${L.ort}</label><input data-f="ort" value="${p.ort}"></div></div>
+      <div class="row2"><div><label>${L.telefon}</label><input data-f="telefon" value="${p.telefon}"></div>
+      <div><label>${L.email}</label><input data-f="email" value="${p.email}"></div></div>
+    `;
+    card.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>{ state.personal[inp.dataset.f]=inp.value; renderPreview(); }));
+  }
+
+  if(idx === 2){
+    card.innerHTML = `<h2>${L.erfTitle}</h2><p class="hint">${L.erfHint}</p><div id="erfList"></div><button class="add-btn" id="addErf">${L.addErf}</button>`;
+    const list = card.querySelector('#erfList');
+    state.erfahrung.forEach(e=>{
+      const b = document.createElement('div'); b.className='entry-block';
+      b.innerHTML = `<button class="remove" data-id="${e.id}">${L.remove}</button>
+        <div class="row2"><div><label>${L.von}</label><input data-f="von" value="${e.von}"></div><div><label>${L.bis}</label><input data-f="bis" value="${e.bis}"></div></div>
+        <label>${L.position}</label><input data-f="titel" value="${e.titel}">
+        <label>${L.firma}</label><input data-f="firma" value="${e.firma}">
+        <label>${L.beschreibung}</label><textarea data-f="beschreibung">${e.beschreibung}</textarea>`;
+      b.querySelectorAll('input,textarea').forEach(inp=>inp.addEventListener('input', ()=>{ e[inp.dataset.f]=inp.value; renderPreview(); }));
+      b.querySelector('.remove').addEventListener('click', ()=>{ state.erfahrung = state.erfahrung.filter(x=>x.id!==e.id); renderAll(); });
+      list.appendChild(b);
+    });
+    card.querySelector('#addErf').addEventListener('click', ()=>{ state.erfahrung.push({id:uid(),von:'',bis:'',titel:'',firma:'',beschreibung:''}); renderAll(); });
+  }
+
+  if(idx === 3){
+    card.innerHTML = `<h2>${L.ausTitle}</h2><p class="hint">${L.ausHint}</p><div id="ausList"></div><button class="add-btn" id="addAus">${L.addAus}</button>`;
+    const list = card.querySelector('#ausList');
+    state.ausbildung.forEach(e=>{
+      const b = document.createElement('div'); b.className='entry-block';
+      b.innerHTML = `<button class="remove" data-id="${e.id}">${L.remove}</button>
+        <div class="row2"><div><label>${L.von}</label><input data-f="von" value="${e.von}"></div><div><label>${L.bis}</label><input data-f="bis" value="${e.bis}"></div></div>
+        <label>${L.abschluss}</label><input data-f="titel" value="${e.titel}">
+        <label>${L.einrichtung}</label><input data-f="einrichtung" value="${e.einrichtung}">`;
+      b.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>{ e[inp.dataset.f]=inp.value; renderPreview(); }));
+      b.querySelector('.remove').addEventListener('click', ()=>{ state.ausbildung = state.ausbildung.filter(x=>x.id!==e.id); renderAll(); });
+      list.appendChild(b);
+    });
+    card.querySelector('#addAus').addEventListener('click', ()=>{ state.ausbildung.push({id:uid(),von:'',bis:'',titel:'',einrichtung:''}); renderAll(); });
+  }
+
+  if(idx === 4){
+    card.innerHTML = `<h2>${L.kenntTitle}</h2><p class="hint">${L.kenntHint}</p>
+      <label>${L.sprachen}</label><input id="spr" value="${state.sprachen.join(', ')}">
+      <label>${L.edv}</label><input id="edv" value="${state.edv.join(', ')}">
+      <label>${L.softskills}</label><textarea id="soft">${state.softskills}</textarea>`;
+    card.querySelector('#spr').addEventListener('input', e=>{ state.sprachen = e.target.value.split(',').map(s=>s.trim()).filter(Boolean); renderPreview(); });
+    card.querySelector('#edv').addEventListener('input', e=>{ state.edv = e.target.value.split(',').map(s=>s.trim()).filter(Boolean); renderPreview(); });
+    card.querySelector('#soft').addEventListener('input', e=>{ state.softskills = e.target.value; renderPreview(); });
+  }
+
+  if(idx === 5){
+    const l = state.letter;
+    card.innerHTML = `<h2>${L.briefTitle}</h2><p class="hint">${L.briefHint}</p>
+      <label>${L.empfaenger}</label><input data-f="empfaenger" value="${l.empfaenger}">
+      <label>${L.ansprechpartner}</label><input data-f="ansprechpartner" value="${l.ansprechpartner}">
+      <label>${L.betreff}</label><input data-f="betreff" value="${l.betreff}">
+      <label>${L.ortDatum}</label><input data-f="ortDatum" value="${l.ortDatum}">
+      <label>${L.brieftext}</label><textarea data-f="brief" style="min-height:160px">${l.brief}</textarea>`;
+    card.querySelectorAll('input,textarea').forEach(inp=>inp.addEventListener('input', ()=>{ state.letter[inp.dataset.f]=inp.value; renderPreview(); }));
+  }
+
+  if(idx === 6){
+    card.innerHTML = `<h2>${L.fertigTitle}</h2><p class="hint">${L.fertigHint}</p>
+      <div style="font-size:13px;line-height:1.7;color:var(--ink-soft);">${L.fertigTip}</div>`;
+  }
+}
+
+function renderNav(){
+  const L = t();
+  document.getElementById('prevBtn').textContent = L.back;
+  document.getElementById('nextBtn').textContent = state.step === t().steps.length-1 ? L.exportPdf : L.next;
+  document.getElementById('prevBtn').disabled = state.step === 0;
+}
+
+function renderPreviewTabs(){
+  const L = t();
+  document.getElementById('previewTabs').innerHTML = `
+    <button class="tab-btn ${state.previewTab==='cv'?'active':''}" data-tab="cv">${L.tabCv}</button>
+    <button class="tab-btn ${state.previewTab==='letter'?'active':''}" data-tab="letter">${L.tabLetter}</button>`;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click', ()=>{ state.previewTab=b.dataset.tab; renderAll(); }));
+  document.getElementById('exportBtn').textContent = state.previewTab==='cv' ? L.exportCvBtn : L.exportLetterBtn;
+  document.getElementById('exportNote').textContent = L.exportNote;
+}
+
+function renderTplPicker(){
+  const L = t();
+  const el = document.getElementById('tplPicker');
+  if(state.previewTab !== 'cv'){ el.innerHTML = ''; return; }
+  const tpls = [['modern',L.tplModern],['classic',L.tplClassic],['bold',L.tplBold]];
+  el.innerHTML = tpls.map(([key,label])=>
+    `<button class="tpl-btn ${state.template===key?'active':''}" data-tpl="${key}">${label}</button>`
+  ).join('');
+  el.querySelectorAll('.tpl-btn').forEach(b=>b.addEventListener('click', ()=>{ state.template=b.dataset.tpl; renderAll(); }));
+}
+
+function renderCvModern(){
+  const p = state.personal, cfg = countryCfg(), C = content(), L = t();
+  const name = (p.vorname||p.nachname) ? `${p.vorname} ${p.nachname}` : `${L.vorname} ${L.nachname}`;
+  const erfHtml = state.erfahrung.length ? state.erfahrung.map(e=>`
+    <div class="lp-item"><div class="dates">${e.von||'…'} – ${e.bis||'…'}</div>
+    <div><div class="title">${e.titel||''}</div><div class="sub">${e.firma||''}</div>${e.beschreibung?`<div class="desc">${e.beschreibung}</div>`:''}</div></div>`).join('')
+    : `<div class="lp-empty">—</div>`;
+  const ausHtml = state.ausbildung.length ? state.ausbildung.map(e=>`
+    <div class="lp-item"><div class="dates">${e.von||'…'} – ${e.bis||'…'}</div>
+    <div><div class="title">${e.titel||''}</div><div class="sub">${e.einrichtung||''}</div></div></div>`).join('')
+    : `<div class="lp-empty">—</div>`;
+  const tags = (arr) => arr.length ? `<div class="lp-tags">${arr.map(x=>`<span class="lp-tag">${x}</span>`).join('')}</div>` : `<div class="lp-empty">—</div>`;
+
+  return `
+    <div class="lp-header">
+      <div><h1>${name}</h1><div class="role">${p.rolle||''}</div>
+      <div class="lp-contact">${p.strasse?p.strasse+'<br>':''}${(p.plz||p.ort)?(p.plz+' '+p.ort)+'<br>':''}${p.telefon?p.telefon+'<br>':''}${p.email||''}</div></div>
+      ${cfg.photo!=='avoid' ? `<div class="lp-photo">${L.photoPlaceholder}</div>` : ''}
+    </div>
+    ${cfg.personalBlock ? `<div class="lp-section"><h3>${C.personalData}</h3>
+      <div class="lp-item"><div class="dates">${C.birth}</div><div>${p.geburtsdatum||'—'}${p.geburtsort?', '+p.geburtsort:''}</div></div>
+      ${cfg.maritalStatus ? `<div class="lp-item"><div class="dates">${C.marital}</div><div>${p.familienstand||'—'}</div></div>` : ''}
+    </div>` : ''}
+    <div class="lp-section"><h3>${C.experience}</h3>${erfHtml}</div>
+    <div class="lp-section"><h3>${C.education}</h3>${ausHtml}</div>
+    <div class="lp-section"><h3>${C.languages}</h3>${tags(state.sprachen)}</div>
+    <div class="lp-section"><h3>${C.it}</h3>${tags(state.edv)}</div>
+    ${state.softskills ? `<div class="lp-section"><h3>${C.soft}</h3><div class="lp-item"><div></div><div class="desc">${state.softskills}</div></div></div>` : ''}
+    ${state.premium ? '' : `<div class="lp-footer">Erstellt mit cvform.de</div>`}
+  `;
+}
+
+function renderCvClassic(){
+  const p = state.personal, cfg = countryCfg(), C = content(), L = t();
+  const name = (p.vorname||p.nachname) ? `${p.vorname} ${p.nachname}` : `${L.vorname} ${L.nachname}`;
+  const rows = (arr, mapRow) => arr.length ? arr.map(mapRow).join('') :
+    `<tr><td class="cls-label">—</td><td class="cls-empty">—</td></tr>`;
+  const erfRows = rows(state.erfahrung, e=>`
+    <tr><td class="cls-label">${e.von||'…'}–${e.bis||'…'}</td>
+    <td><strong>${e.titel||''}</strong>${e.firma?', '+e.firma:''}${e.beschreibung?`<br><span style="font-size:11px;">${e.beschreibung}</span>`:''}</td></tr>`);
+  const ausRows = rows(state.ausbildung, e=>`
+    <tr><td class="cls-label">${e.von||'…'}–${e.bis||'…'}</td>
+    <td><strong>${e.titel||''}</strong>${e.einrichtung?', '+e.einrichtung:''}</td></tr>`);
+
+  return `
+    <div class="cls-header">
+      <h1>${name}</h1>
+      <div class="role">${p.rolle||''}</div>
+    </div>
+    <table>
+      <tr class="cls-section-title"><td colspan="2">${C.personalData}</td></tr>
+      <tr><td class="cls-label">${L.geburtsdatum||'—'}</td><td>${p.geburtsdatum||'—'}${p.geburtsort?', '+p.geburtsort:''}</td></tr>
+      ${cfg.maritalStatus ? `<tr><td class="cls-label">${C.marital}</td><td>${p.familienstand||'—'}</td></tr>` : ''}
+      <tr><td class="cls-label">${L.telefon||'—'}</td><td>${p.telefon||'—'} · ${p.email||'—'}</td></tr>
+      <tr><td class="cls-label">${L.ort||'—'}</td><td>${p.strasse?p.strasse+', ':''}${p.plz||''} ${p.ort||''}</td></tr>
+
+      <tr class="cls-section-title"><td colspan="2">${C.experience}</td></tr>
+      ${erfRows}
+
+      <tr class="cls-section-title"><td colspan="2">${C.education}</td></tr>
+      ${ausRows}
+
+      <tr class="cls-section-title"><td colspan="2">${C.languages}</td></tr>
+      <tr><td colspan="2">${state.sprachen.join(' · ') || '—'}</td></tr>
+
+      <tr class="cls-section-title"><td colspan="2">${C.it}</td></tr>
+      <tr><td colspan="2">${state.edv.join(' · ') || '—'}</td></tr>
+
+      ${state.softskills ? `<tr class="cls-section-title"><td colspan="2">${C.soft}</td></tr><tr><td colspan="2">${state.softskills}</td></tr>` : ''}
+    </table>
+    ${state.premium ? '' : `<div class="cls-footer">cvform.de</div>`}
+  `;
+}
+
+function renderCvBold(){
+  const p = state.personal, cfg = countryCfg(), C = content(), L = t();
+  const name = (p.vorname||p.nachname) ? `${p.vorname} ${p.nachname}` : `${L.vorname} ${L.nachname}`;
+  const tags = (arr) => arr.length ? arr.map(x=>`<span class="bold-tag">${x}</span>`).join('') : `<span style="color:#8B98A2;font-size:11px;">—</span>`;
+  const erfHtml = state.erfahrung.length ? state.erfahrung.map(e=>`
+    <div class="lp-item"><div class="dates">${e.von||'…'} – ${e.bis||'…'}</div>
+    <div><div class="title">${e.titel||''}</div><div class="sub">${e.firma||''}</div>${e.beschreibung?`<div class="desc">${e.beschreibung}</div>`:''}</div></div>`).join('')
+    : `<div class="lp-empty">—</div>`;
+  const ausHtml = state.ausbildung.length ? state.ausbildung.map(e=>`
+    <div class="lp-item"><div class="dates">${e.von||'…'} – ${e.bis||'…'}</div>
+    <div><div class="title">${e.titel||''}</div><div class="sub">${e.einrichtung||''}</div></div></div>`).join('')
+    : `<div class="lp-empty">—</div>`;
+
+  return `
+    <div class="bold-side">
+      ${cfg.photo!=='avoid' ? `<div class="bold-photo">${L.photoPlaceholder}</div>` : ''}
+      <h1>${name}</h1>
+      <div class="role">${p.rolle||''}</div>
+      <div class="bold-block"><h4>Contact</h4><div class="bold-contact">
+        ${p.strasse?p.strasse+'<br>':''}${(p.plz||p.ort)?(p.plz+' '+p.ort)+'<br>':''}${p.telefon?p.telefon+'<br>':''}${p.email||''}
+      </div></div>
+      ${cfg.personalBlock ? `<div class="bold-block"><h4>${C.personalData}</h4><div class="bold-contact">
+        ${C.birth}: ${p.geburtsdatum||'—'}${cfg.maritalStatus?`<br>${C.marital}: ${p.familienstand||'—'}`:''}
+      </div></div>` : ''}
+      <div class="bold-block"><h4>${C.languages}</h4>${tags(state.sprachen)}</div>
+      <div class="bold-block"><h4>${C.it}</h4>${tags(state.edv)}</div>
+    </div>
+    <div class="bold-main">
+      <div class="lp-section"><h3>${C.experience}</h3>${erfHtml}</div>
+      <div class="lp-section"><h3>${C.education}</h3>${ausHtml}</div>
+      ${state.softskills ? `<div class="lp-section"><h3>${C.soft}</h3><div class="desc">${state.softskills}</div></div>` : ''}
+    </div>
+    ${state.premium ? '' : `<div class="bold-footer">cvform.de</div>`}
+  `;
+}
+
+function renderCv(){
+  const page = document.getElementById('page');
+  page.className = 'tpl-' + state.template;
+  if(state.template === 'classic') page.innerHTML = renderCvClassic();
+  else if(state.template === 'bold') page.innerHTML = renderCvBold();
+  else page.innerHTML = renderCvModern();
+}
+
+function renderLetter(){
+  document.getElementById('page').className = '';
+  const p = state.personal, l = state.letter, C = content();
+  const salutation = l.ansprechpartner ? C.salutationNamed(l.ansprechpartner) : C.salutationGeneric;
+  document.getElementById('page').innerHTML = `
+    <div class="letter-doc">
+      <div style="margin-bottom:28px;">
+        <div style="font-weight:600;">${p.vorname||''} ${p.nachname||''}</div>
+        <div class="lp-contact">${p.strasse?p.strasse+'<br>':''}${(p.plz||p.ort)?(p.plz+' '+p.ort)+'<br>':''}${p.telefon?p.telefon+'<br>':''}${p.email||''}</div>
+      </div>
+      <div style="margin-bottom:8px;">${l.empfaenger||''}</div>
+      <div class="letter-meta" style="justify-content:flex-end;">${l.ortDatum||''}</div>
+      <div style="font-weight:600;margin-bottom:20px;">${l.betreff||''}</div>
+      <div style="margin-bottom:16px;">${salutation}</div>
+      <div class="letter-body"><p>${l.brief || ''}</p></div>
+      <div class="letter-sign">${C.closing}<br><br>${p.vorname||''} ${p.nachname||''}</div>
+      ${state.premium ? '' : `<div class="lp-footer">Erstellt mit cvform.de</div>`}
+    </div>
+  `;
+}
+
+function renderPreview(){
+  if(state.previewTab === 'cv') renderCv(); else renderLetter();
+}
+
+function renderAll(){
+  renderLangSwitch(); renderPremiumSlot(); renderSteps(); renderStepCard(); renderNav(); renderPreviewTabs(); renderTplPicker(); renderPreview();
+  persist();
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=>{ if(state.step>0){ state.step--; renderAll(); } });
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(state.step < t().steps.length-1){ state.step++; renderAll(); } else { exportPdf(); }
+});
+document.getElementById('exportBtn').addEventListener('click', exportPdf);
+
+function exportPdf(){
+  const el = document.getElementById('page');
+  const filename = state.previewTab === 'cv' ? 'CV.pdf' : 'Anschreiben.pdf';
+  html2pdf().set({
+    margin:0, filename, image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:'pt',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['css','avoid-all']}
+  }).from(el).save();
+}
+
+renderAll();
+</script>
+</body>
+</html>
