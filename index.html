@@ -13,10 +13,14 @@
     --paper:#EEF1EF; --paper-card:#FFFFFF; --line:#D8DCD6;
     --seal:#B08D3E; --seal-soft:#EFE4C9;
     --moss:#3E6259; --moss-soft:#DDE7E3;
+    --stamp:#A8362B; --stamp-soft:#F3DCD8;
     --danger:#B3492F; --radius:2px;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;
+    background-image:radial-gradient(circle, rgba(22,35,46,0.06) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
   h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
   .mono{font-family:'IBM Plex Mono',monospace;}
 
@@ -26,7 +30,7 @@
   @keyframes gentleFloat{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(-2deg);}}
 
   .progress-track{height:3px;background:var(--line);width:100%;}
-  .progress-fill{height:100%;background:linear-gradient(90deg,var(--seal),var(--moss));transition:width .45s cubic-bezier(.4,0,.2,1);}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--stamp),var(--seal),var(--moss));transition:width .45s cubic-bezier(.4,0,.2,1);}
 
   .card{animation:fadeSlideIn .35s ease both;}
   .step-pill{transition:all .2s ease;}
@@ -69,9 +73,9 @@
   .step-pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:20px;border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;background:var(--paper-card);display:flex;align-items:center;gap:6px;}
   .step-pill.active{border-color:var(--moss);color:var(--moss);background:var(--moss-soft);}
   .step-pill .check{display:none;}
-  .step-pill.done .check{display:inline;color:var(--seal);}
+  .step-pill.done .check{display:inline;color:var(--stamp);font-weight:700;}
 
-  .card{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+  .card{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:0 2px 14px rgba(22,35,46,.06), 0 1px 2px rgba(22,35,46,.05);}
   .card h2{font-size:22px;margin-bottom:4px;}
   .card p.hint{color:var(--ink-soft);font-size:13px;margin:0 0 20px 0;}
 
@@ -87,8 +91,18 @@
   .photo-remove-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;}
 
   .country-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+
+  /* hero (step 0) */
+  .hero{display:flex;align-items:center;gap:28px;margin-bottom:8px;}
+  .hero-text{flex:1;}
+  .hero-text h2{font-size:28px;font-style:italic;line-height:1.15;margin-bottom:10px;}
+  .hero-stamp{flex-shrink:0;display:none;}
+  @media (min-width:560px){ .hero-stamp{display:block;} }
+  .stamp-wrap{animation:stampFloat 5s ease-in-out infinite;}
+  @keyframes stampFloat{0%,100%{transform:rotate(-9deg) translateY(0);}50%{transform:rotate(-6deg) translateY(-4px);}}
   .country-btn{text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
-  .country-btn.active{border-color:var(--moss);background:var(--moss-soft);color:var(--moss);}
+  .country-btn.active{border-color:var(--moss);background:var(--moss-soft);color:var(--moss);box-shadow:0 2px 10px rgba(62,98,89,.18);position:relative;}
+  .country-btn.active::after{content:'✓';position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--stamp);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25);}
   .country-btn small{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);font-size:10px;}
   .country-btn.active small{color:var(--moss);}
 
@@ -103,8 +117,10 @@
   .preview-tabs{display:flex;gap:8px;margin-bottom:16px;}
   .tab-btn.active{background:var(--moss);color:#fff;}
 
-  #page{width:794px;max-width:100%;min-height:1123px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,0.12);padding:56px 56px 40px;}
+  #page{width:794px;max-width:100%;min-height:1123px;background:#fff;box-shadow:0 12px 40px rgba(22,35,46,0.16), 0 2px 8px rgba(22,35,46,.08);padding:56px 56px 40px;position:relative;}
   #page.tpl-bold{padding:0;overflow:hidden;}
+  .page-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.05;pointer-events:none;z-index:0;}
+  .page-inner-content{position:relative;z-index:1;}
   .lp-header{display:flex;justify-content:space-between;gap:24px;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:24px;}
   .lp-header h1{font-size:30px;}
   .lp-header .role{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--moss);margin-top:4px;}
@@ -126,7 +142,7 @@
   /* template picker */
   .tpl-picker{display:flex;gap:8px;margin-bottom:14px;}
   .tpl-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;}
-  .tpl-btn.active{border-color:var(--seal);color:var(--seal);background:var(--seal-soft);}
+  .tpl-btn.active{border-color:var(--seal);color:var(--seal);background:var(--seal-soft);box-shadow:0 2px 8px rgba(176,141,58,.2);}
 
   /* --- classic (strict tabellarisch) template --- */
   .tpl-classic{font-family:'IBM Plex Mono',Georgia,serif;}
@@ -373,6 +389,26 @@ function checkPremiumFromUrl(){
 const state = loadPersisted() || DEFAULT_STATE;
 if(state.premium === undefined) state.premium = false;
 checkPremiumFromUrl();
+function stampSVG(size){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 200 200">
+    <defs>
+      <filter id="inkRough"><feTurbulence baseFrequency="0.9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5"/></filter>
+      <path id="circlePath" d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"/>
+    </defs>
+    <g filter="url(#inkRough)" fill="none" stroke="#A8362B" stroke-width="3">
+      <circle cx="100" cy="100" r="92"/>
+      <circle cx="100" cy="100" r="80"/>
+    </g>
+    <g filter="url(#inkRough)" fill="#A8362B">
+      <text font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="3">
+        <textPath href="#circlePath" startOffset="1%">GEPRÜFT · VÉRIFIÉ · APPROVED · GEPRÜFT · VÉRIFIÉ · APPROVED ·</textPath>
+      </text>
+      <text x="100" y="94" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="28">CV</text>
+      <text x="100" y="120" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">FORM</text>
+    </g>
+  </svg>`;
+}
+
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function t(){ return UI[state.uiLang]; }
 function countryCfg(){ return COUNTRIES.find(c=>c.code===state.country); }
@@ -419,8 +455,13 @@ function renderStepCard(){
 
   if(idx === 0){
     card.innerHTML = `
-      <h2>${L.landTitle}</h2>
-      <p class="hint">${L.landHint}</p>
+      <div class="hero">
+        <div class="hero-text">
+          <h2>${L.landTitle}</h2>
+          <p class="hint">${L.landHint}</p>
+        </div>
+        <div class="hero-stamp"><div class="stamp-wrap">${stampSVG(120)}</div></div>
+      </div>
       <div class="country-grid" id="countryGrid">
         ${COUNTRIES.map(c=>`
           <button class="country-btn ${c.code===state.country?'active':''}" data-c="${c.code}">
@@ -564,6 +605,7 @@ function renderTplPicker(){
 
 function renderCvModern(){
   const p = state.personal, cfg = countryCfg(), C = content(), L = t();
+  const isEmpty = !p.vorname && !p.nachname && !state.erfahrung.length && !state.ausbildung.length;
   const name = (p.vorname||p.nachname) ? `${p.vorname} ${p.nachname}` : `${L.vorname} ${L.nachname}`;
   const erfHtml = state.erfahrung.length ? state.erfahrung.map(e=>`
     <div class="lp-item"><div class="dates">${e.von||'…'} – ${e.bis||'…'}</div>
@@ -576,6 +618,8 @@ function renderCvModern(){
   const tags = (arr) => arr.length ? `<div class="lp-tags">${arr.map(x=>`<span class="lp-tag">${x}</span>`).join('')}</div>` : `<div class="lp-empty">—</div>`;
 
   return `
+    ${isEmpty ? `<div class="page-watermark">${stampSVG(320)}</div>` : ''}
+    <div class="page-inner-content">
     <div class="lp-header">
       <div><h1>${name}</h1><div class="role">${p.rolle||''}</div>
       <div class="lp-contact">${p.strasse?p.strasse+'<br>':''}${(p.plz||p.ort)?(p.plz+' '+p.ort)+'<br>':''}${p.telefon?p.telefon+'<br>':''}${p.email||''}</div></div>
@@ -591,6 +635,7 @@ function renderCvModern(){
     <div class="lp-section"><h3>${C.it}</h3>${tags(state.edv)}</div>
     ${state.softskills ? `<div class="lp-section"><h3>${C.soft}</h3><div class="lp-item"><div></div><div class="desc">${state.softskills}</div></div></div>` : ''}
     ${state.premium ? '' : `<div class="lp-footer">Erstellt mit cvform.de</div>`}
+    </div>
   `;
 }
 
@@ -722,7 +767,8 @@ function exportPdf(){
   const filename = state.previewTab === 'cv' ? 'CV.pdf' : 'Anschreiben.pdf';
   html2pdf().set({
     margin:0, filename, image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:'pt',format:'a4',orientation:'portrait'},
+    html2canvas:{scale:2,useCORS:true, ignoreElements: (node) => node.classList && node.classList.contains('page-watermark')},
+    jsPDF:{unit:'pt',format:'a4',orientation:'portrait'},
     pagebreak:{mode:['css','avoid-all']}
   }).from(el).save();
 }
